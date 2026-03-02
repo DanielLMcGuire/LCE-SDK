@@ -1,9 +1,7 @@
-// dllmain.cpp
-
 #include <windows.h>
 #include <fstream>
 
-class Minecraft;
+#include "LCE.h"
 
 typedef Minecraft* (*GetGameInstanceFn)();
 
@@ -38,19 +36,17 @@ DWORD WINAPI MainThread(LPVOID)
 
     Minecraft* minecraft = nullptr;
 
+	// If minecraft doesnt exist, wait a bit
     while (!minecraft)
     {
         minecraft = getGameInstance();
         Sleep(100);
     }
 
-	// START BLOCK
-
-	// You can replace this with whatever you want
+	// You can replace the below with whatever you want
 	char buf[128];
     sprintf_s(buf, "Game ptr: 0x%p", minecraft);
 	Log(buf);
-	// END BLOCK
 
     return 0;
 }
