@@ -7,6 +7,9 @@ Currently compatible with:
 
 
 Source Patches:
+https://github.com/DanielLMcGuire/LCE-Patches
+
+Patches Mirror:
 http://dlce.pages.dev/lce-modloader.7z
 
 Also need Ultimate ASI Loader:
