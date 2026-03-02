@@ -2,7 +2,11 @@ Modding SDK for LCE
 
 Work in progress, commits are (strongly) welcomed
 
-Patches:
+Currently compatible with:
+- https://github.com/smartcmd/MinecraftConsoles
+
+
+Source Patches:
 http://dlce.pages.dev/lce-modloader.7z
 
 Also need Ultimate ASI Loader:
