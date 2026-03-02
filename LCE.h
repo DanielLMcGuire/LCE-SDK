@@ -36,7 +36,7 @@ class ItemInHandRenderer;
 class LevelSettings;
 class ColourTable;
 class MultiPlayerGameMode;
-class PsPlusUpsellWrapper;
+
 
 // Abstract Definitions to replace first
 class Level;
