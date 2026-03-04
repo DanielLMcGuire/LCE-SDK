@@ -89,6 +89,9 @@ int Minecraft::frameTimePos = 0;
 __int64 Minecraft::warezTime = 0;
 File Minecraft::workDir = File(L"");
 
+extern bool g_modsDisabled;
+extern std::string g_modsProfile;
+
 #ifdef __PSVITA__
 
 TOUCHSCREENRECT QuickSelectRect[3]=
@@ -199,7 +202,15 @@ Minecraft::Minecraft(Component *mouseComponent, Canvas *parent, MinecraftApplet 
 	appletMode = false;
 
 	Minecraft::m_instance = this;
-	Modloader::Modloader("mods", m_instance);
+	#if (!g_modsDisabled) {
+		std::string profile; 
+		if (g_modsProfile) {
+			profile = g_modsProfile;
+		} else { 
+			profile = "mods";
+		}
+		Modloader::Modloader(profile, m_instance);
+	}
 	TextureManager::createInstance();
 
 	for(int i=0;i<XUSER_MAX_COUNT;i++)

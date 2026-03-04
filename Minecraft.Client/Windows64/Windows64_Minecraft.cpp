@@ -78,6 +78,8 @@ BOOL g_bWidescreen = TRUE;
 
 int g_iScreenWidth = 1920;
 int g_iScreenHeight = 1080;
+bool g_modsDisabled = false;
+std::string g_modsProfile;
 
 void DefineActions(void)
 {
@@ -609,11 +611,21 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	if(lpCmdLine && lpCmdLine[0] != '\0')
 	{
-    if(strstr(lpCmdLine, "-width="))
-        g_iScreenWidth = atoi(strstr(lpCmdLine, "-width=") + 7);
+		if(strstr(lpCmdLine, "-width=")) {
+			g_iScreenWidth = atoi(strstr(lpCmdLine, "-width=") + 7);
+		}
 
-    if(strstr(lpCmdLine, "-height="))
-        g_iScreenHeight = atoi(strstr(lpCmdLine, "-height=") + 8);
+		if(strstr(lpCmdLine, "-height=")) {
+			g_iScreenHeight = atoi(strstr(lpCmdLine, "-height=") + 8);
+		}
+
+		if(strstr(lpCmdLine, "-no-mods")) {
+			g_ModsDisabled = true;
+		}
+
+		if(!g_ModsDisabled && strstr(lpCmdLine, "-mod-profile=")) {
+			g_modsProfile = strstr(lpCmdLine, "-mod-profile=") + 13;  
+		}
 	}
 
 
