@@ -4,13 +4,24 @@ Work in progress, commits are (strongly) welcomed
 
 ## Requirements
 ### 1. Source Patches:
-https://github.com/DanielLMcGuire/LCE-Patches
+Minecraft.Client contains them
 
-Not needed with the following forks:
-- https://github.com/smartcmd/MinecraftConsoles
+### 2. Create a mod:
+Create a main function:
 
-### 3. Ultimate ASI Loader:
-https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/x64-latest/d3d11-x64.zip
+```cpp
+#include "../Minecraft.Client/Minecraft.h"
+
+void minecraft_mod(Minecraft* minecraft) {
+...
+}
+```
+
+Create a thread and include ANYTHING from ../Minecraft/Client, and manipulate anything under the Minecraft class or it's members.
+
+You will need to use the same compiler to compile the mod as you compiled the fork.
+
+Still working on a cleaned up interface
 
 Other modding resources/tools:
 https://github.com/NessieHax/mc-arc-util
