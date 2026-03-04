@@ -34,3 +34,5 @@ Still working on a cleaned up interface
 Other modding resources/tools:
 https://github.com/NessieHax/mc-arc-util
 https://dlce.pages.dev/
+
+I have no legal affiliation with Microsoft, thier trademarks, thier affiliates trademarks, nor with any other companies intellectual property.
