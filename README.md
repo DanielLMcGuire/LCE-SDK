@@ -2,6 +2,10 @@ Modding SDK for LCE
 
 Work in progress, commits are (strongly) welcomed
 
+> [!WARNING]
+>
+> Not stable (yet)
+
 ## Requirements
 ### 1. Source Patches:
 Minecraft.Client contains them
