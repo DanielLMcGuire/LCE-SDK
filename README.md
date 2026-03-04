@@ -5,6 +5,8 @@ Work in progress, commits are (strongly) welcomed
 > [!WARNING]
 >
 > Not stable (yet)
+>
+> Might also be important to know that it doesnt work yet
 
 ## Requirements
 ### 1. Source Patches:
