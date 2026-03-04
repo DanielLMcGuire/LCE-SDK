@@ -27,7 +27,7 @@ Create a thread and include ANYTHING from ../Minecraft.Client/, and manipulate a
 
 Post init stuff can be done before the thread, but you should read the code to understand it's limitations at this stage.
 
-You will need to use the same compiler to compile the mod as you compiled the fork.
+You will need to use the same compiler to compile the mod as you compiled the fork to compile a library (DLL file), and place it in MINECRAFT_DIR/mods/
 
 Still working on a cleaned up interface
 
