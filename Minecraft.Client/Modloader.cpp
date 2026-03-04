@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Modloader.hpp"
+#include "Modloader.h"
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -38,14 +38,14 @@ bool Modloader::loadPlugin(const std::string &library, Minecraft *minecraft)
     {
         return false;
     }
-    auto entry_point = (PluginEntryFunc)GetProcAddress(lib, "minecraft_mod");
+    auto entry_point = (PluginEntryFunc)GetProcAddress(lib, ModEntryName);
 #else
     void *lib = dlopen(library.c_str(), RTLD_NOW);
     if (!lib)
     {
         return false;
     }
-    auto entry_point = (PluginEntryFunc)dlsym(lib, "minecraft_mod");
+    auto entry_point = (PluginEntryFunc)dlsym(lib, ModEntryName);
 #endif
 
     if (!entry_point)

@@ -14,9 +14,8 @@
 #include <dlfcn.h>
 #endif
 
-#include "../include/lce.h"
-
-typedef void (*ModEntry)(const Minecraft *minecraft);
+typedef void (*ModEntry)(const Minecraft *minecraft); 
+const std::string ModEntryName = "minecraft_mod";
 
 struct Plugin
 {
