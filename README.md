@@ -2,6 +2,8 @@ C++ Modding SDK for LCE
 
 Work in progress, commits are (strongly) welcomed
 
+I plan to bind this to a higher level language when complete
+
 > [!WARNING]
 >
 > Not stable (yet)
