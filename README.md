@@ -1,4 +1,4 @@
-Modding SDK for LCE
+C++ Modding SDK for LCE
 
 Work in progress, commits are (strongly) welcomed
 
