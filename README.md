@@ -8,7 +8,7 @@ I plan to bind this to a higher level language when complete
 >
 > Not stable (yet)
 >
-> Might also be important to know that it doesnt work yet
+> Might also be important to know that it doesnt work yet, and is client side rn
 
 ## Requirements
 ### 1. Source Patches:
