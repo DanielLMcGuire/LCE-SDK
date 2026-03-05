@@ -10,7 +10,7 @@ Work in progress, commits are (strongly) welcomed
 
 ## Requirements
 ### 1. Source Patches:
-Minecraft.Client contains them
+Client folder contains them
 
 ### 2. Create a mod:
 Create a main function:
@@ -34,5 +34,3 @@ Still working on a cleaned up interface
 Other modding resources/tools:
 https://github.com/NessieHax/mc-arc-util
 https://dlce.pages.dev/
-
-I have no legal affiliation with Microsoft, thier trademarks, thier affiliates trademarks, nor with any other companies intellectual property.
