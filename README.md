@@ -14,6 +14,8 @@ I plan to bind this to a higher level language when complete
 ### 1. Source Patches:
 Client folder contains them
 
+Back up your source code first!! (or just don't delete minecraft.rar)
+
 ### 2. Create a mod:
 Create a main function:
 
