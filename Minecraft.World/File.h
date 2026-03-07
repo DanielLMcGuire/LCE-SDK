@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -30,8 +32,10 @@ public:
     std::string getName() const;
     std::string getParentPath() const;
 
-    std::vector<File*>* listFiles()                   const;
-    std::vector<File*>* listFiles(FileFilter* filter) const;
+    using FileList = std::vector<std::unique_ptr<File>>;
+
+    std::unique_ptr<FileList> listFiles() const;
+    std::unique_ptr<FileList> listFiles(FileFilter* filter) const;
 
     static bool eq_test(const File& x, const File& y);
     static int  hash_fnct(const File& k);

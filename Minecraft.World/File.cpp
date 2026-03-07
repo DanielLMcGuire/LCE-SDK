@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 
 #if defined(_WIN32)
@@ -228,9 +229,9 @@ std::string File::getParentPath() const
     return m_path.substr(0, sep);
 }
 
-std::vector<File*>* File::listFiles() const
+std::unique_ptr<File::FileList> File::listFiles() const
 {
-    auto* output = new std::vector<File*>();
+    auto output = std::unique_ptr<FileList>(new FileList());
     if (!isDirectory()) return output;
 
 #if defined(PLATFORM_WINDOWS)
@@ -241,7 +242,7 @@ std::vector<File*>* File::listFiles() const
         do {
             std::string name = wfd.cFileName;
             if (name == "." || name == "..") continue;
-            output->push_back(new File(*this, name));
+            output->push_back(std::unique_ptr<File>(new File(*this, name)));
         } while (FindNextFileA(hFind, &wfd));
         FindClose(hFind);
     }
@@ -252,7 +253,7 @@ std::vector<File*>* File::listFiles() const
         while ((entry = ::readdir(dir)) != nullptr) {
             std::string name = entry->d_name;
             if (name == "." || name == "..") continue;
-            output->push_back(new File(*this, name));
+            output->push_back(std::unique_ptr<File>(new File(*this, name)));
         }
         ::closedir(dir);
     }
@@ -261,11 +262,11 @@ std::vector<File*>* File::listFiles() const
     return output;
 }
 
-std::vector<File*>* File::listFiles(FileFilter* filter) const
+std::unique_ptr<File::FileList> File::listFiles(FileFilter* filter) const
 {
     if (!isDirectory()) return nullptr;
 
-    auto* output = new std::vector<File*>();
+    auto output = std::unique_ptr<FileList>(new FileList());
 
 #if defined(PLATFORM_WINDOWS)
     std::string pattern = m_path + pathSeparator + "*";
@@ -275,11 +276,10 @@ std::vector<File*>* File::listFiles(FileFilter* filter) const
         do {
             std::string name = wfd.cFileName;
             if (name == "." || name == "..") continue;
-            File* candidate = new File(*this, name);
-            if (filter && filter->accept(candidate))
-                output->push_back(candidate);
-            else
-                delete candidate;
+            auto candidate = std::unique_ptr<File>(new File(*this, name));
+            if (filter && filter->accept(*candidate))
+                output->push_back(std::move(candidate));
+            // unique_ptr destructs candidate automatically if not accepted
         } while (FindNextFileA(hFind, &wfd));
         FindClose(hFind);
     }
@@ -290,11 +290,10 @@ std::vector<File*>* File::listFiles(FileFilter* filter) const
         while ((entry = ::readdir(dir)) != nullptr) {
             std::string name = entry->d_name;
             if (name == "." || name == "..") continue;
-            File* candidate = new File(*this, name);
-            if (filter && filter->accept(candidate))
-                output->push_back(candidate);
-            else
-                delete candidate;
+            auto candidate = std::unique_ptr<File>(new File(*this, name));
+            if (filter && filter->accept(*candidate))
+                output->push_back(std::move(candidate));
+            // unique_ptr destructs candidate automatically if not accepted
         }
         ::closedir(dir);
     }
