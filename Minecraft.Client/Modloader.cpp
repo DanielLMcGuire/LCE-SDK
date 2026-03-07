@@ -1,205 +1,112 @@
 #include "stdafx.h"
 #include "Modloader.h"
-#include <vector>
-#include <iostream>
 #include <memory>
+#include <vector>
 #include <string>
-#include <stdexcept>
-#include <sstream>
+#include <iostream>
+
+namespace {
+
+class PluginFilter : public FileFilter
+{
+  public:
+    bool accept(File *f) const override
+    {
+        if (!f || !f->isFile()) return false;
+        const std::string name = f->getName();
+        const size_t dot = name.find_last_of('.');
+        if (dot == std::string::npos) return false;
+        const std::string ext = name.substr(dot);
 #if defined(_WIN32)
-#include <direct.h>
+        return ext == ".dll" || ext == ".asi";
 #elif defined(__APPLE__)
-#include <mach-o/dyld.h>
-#include <unistd.h>
-#elif defined(__linux__)
-#include <unistd.h>
+        return ext == ".dylib";
+#else
+        return ext == ".so";
 #endif
+    }
+};
 
-#if defined(_WIN32)
-#define getcwd _getcwd
-#endif
-
-static std::string joinPath(const std::string &base, const std::string &sub)
+LibHandle makeHandle(void *raw)
 {
 #if defined(_WIN32)
-    return base + "\\" + sub;
+    return LibHandle(
+        static_cast<HMODULE>(raw),
+        [](HMODULE h) { if (h) FreeLibrary(h); }
+    );
 #else
-    return base + "/" + sub;
+    return LibHandle(
+        raw,
+        [](void *h) { if (h) dlclose(h); }
+    );
 #endif
 }
 
-bool Modloader::loadPlugin(const std::string &library, Minecraft *minecraft)
+}  // namespace
+
+bool Modloader::loadPlugin(const File &library)
 {
-    using PluginEntryFunc = void (*)(const PhasorAPI *, PhasorVM *);
+    const std::string path = library.getPath();
 
 #if defined(_WIN32)
-    HMODULE lib = LoadLibraryA(library.c_str());
-    if (!lib)
-    {
-        return false;
-    }
-    auto entry_point = (PluginEntryFunc)GetProcAddress(lib, ModEntryName);
+    void *raw = static_cast<void *>(LoadLibraryA(path.c_str()));
 #else
-    void *lib = dlopen(library.c_str(), RTLD_NOW);
-    if (!lib)
-    {
-        return false;
-    }
-    auto entry_point = (PluginEntryFunc)dlsym(lib, ModEntryName);
+    void *raw = dlopen(path.c_str(), RTLD_NOW);
 #endif
 
-    if (!entry_point)
-    {
+    if (!raw) return false;
+
+    LibHandle handle = makeHandle(raw);
+
 #if defined(_WIN32)
-        FreeLibrary(lib);
+    ModEntry entry_point = reinterpret_cast<ModEntry>(
+        GetProcAddress(static_cast<HMODULE>(handle.get()), ModEntryName.c_str()));
 #else
-        dlclose(lib);
+    ModEntry entry_point = reinterpret_cast<ModEntry>(
+        dlsym(handle.get(), ModEntryName.c_str()));
 #endif
-        return false;
-    }
 
-    plugins_.push_back(Plugin{lib, library, nullptr});
+    if (!entry_point) return false;
+
+    entry_point(m_instance);
+    plugins_.emplace_back(std::move(handle), library, entry_point);
     return true;
 }
 
-bool Modloader::addPlugin(const std::string &pluginPath)
+bool Modloader::addPlugin(const File &pluginFile)
 {
-    return loadPlugin(pluginPath, m_instance);
+    return loadPlugin(pluginFile);
 }
 
-std::vector<std::string> Modloader::scanPlugins(const std::string &folder)
+std::vector<File> Modloader::scanPlugins(const File &baseFolder)
 {
-    if (folder.empty())
-        return {};
+    std::vector<File> result;
+    if (!baseFolder.isDirectory()) return result;
 
-    std::vector<std::string> plugins;
-    std::string              exeDir;
-    std::vector<std::string> foldersToScan;
+    PluginFilter filter;
 
-#if defined(_WIN32)
-    char path[MAX_PATH];
-    GetModuleFileNameA(nullptr, path, MAX_PATH);
-    exeDir = std::string(path);
-    size_t pos = exeDir.find_last_of("\\/");
-    if (pos != std::string::npos)
-        exeDir = exeDir.substr(0, pos);
-#elif defined(__APPLE__)
-    char     path[1024];
-    uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) == 0)
-    {
-        std::string p(path);
-        size_t pos = p.find_last_of('/');
-        exeDir = (pos != std::string::npos) ? p.substr(0, pos) : p;
-    }
-    else
-    {
-        char cwdBuf[4096];
-        if (getcwd(cwdBuf, sizeof(cwdBuf)))
-            exeDir = cwdBuf;
-    }
-#elif defined(__linux__)
-    char    path[1024];
-    ssize_t count = readlink("/proc/self/exe", path, sizeof(path));
-    if (count != -1)
-    {
-        std::string p(path, count);
-        size_t pos = p.find_last_of('/');
-        exeDir = (pos != std::string::npos) ? p.substr(0, pos) : p;
-    }
-    else
-    {
-        char cwdBuf[4096];
-        if (getcwd(cwdBuf, sizeof(cwdBuf)))
-            exeDir = cwdBuf;
-    }
-#else
-    char cwdBuf[4096];
-    if (getcwd(cwdBuf, sizeof(cwdBuf)))
-        exeDir = cwdBuf;
-#endif
+    std::unique_ptr<std::vector<std::unique_ptr<File>>> entries(
+        baseFolder.listFiles(&filter)
+    );
 
-    std::string cwdStr;
-    {
-        char cwdBuf[4096];
-        if (getcwd(cwdBuf, sizeof(cwdBuf)))
-            cwdStr = cwdBuf;
+    if (!entries) return result;
+
+    for (const auto &f : *entries) {
+        if (f) result.push_back(*f);
     }
 
-    foldersToScan.push_back(joinPath(exeDir, folder));
-    if (exeDir != cwdStr)
-        foldersToScan.push_back(joinPath(cwdStr, folder));
-
-    for (auto &folderPath : foldersToScan)
-    {
-#if defined(_WIN32)
-        WIN32_FIND_DATAA fd;
-        HANDLE hFind = FindFirstFileA((folderPath + "\\*").c_str(), &fd);
-        if (hFind == INVALID_HANDLE_VALUE)
-            continue;
-        do {
-            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                continue;
-            std::string name(fd.cFileName);
-            std::string ext;
-            size_t dot = name.find_last_of('.');
-            if (dot != std::string::npos)
-                ext = name.substr(dot);
-            if (ext == ".dll" || ext == ".asi")
-                plugins.push_back(folderPath + "\\" + name);
-        } while (FindNextFileA(hFind, &fd));
-        FindClose(hFind);
-#else
-        DIR *dir = opendir(folderPath.c_str());
-        if (!dir)
-            continue;
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != nullptr)
-        {
-            if (entry->d_type != DT_REG)
-                continue;
-            std::string name(entry->d_name);
-            std::string ext;
-            size_t dot = name.find_last_of('.');
-            if (dot != std::string::npos)
-                ext = name.substr(dot);
-#if defined(__APPLE__)
-            if (ext == ".dylib")
-#else
-            if (ext == ".so")
-#endif
-                plugins.push_back(folderPath + "/" + name);
-        }
-        closedir(dir);
-#endif
-    }
-
-    return plugins;
+    return result;
 }
 
-void Modloader::unloadAll()
+Modloader::Modloader(Minecraft *minecraft) : m_instance(minecraft)
 {
-    for (auto &plugin : plugins_)
-    {
-#if defined(_WIN32)
-        FreeLibrary(plugin.handle);
-#else
-        dlclose(plugin.handle);
-#endif
-    }
-    plugins_.clear();
+    for (const File &f : scanPlugins(m_instance->workingDirectory))
+        loadPlugin(f);
 }
 
-Modloader::Modloader(const std::string &pluginFolder, Minecraft *minecraft) : pluginFolder_(pluginFolder), m_instance(minecraft)
+Modloader::Modloader(const File &pluginFolder, Minecraft *minecraft)
+    : m_instance(minecraft)
 {
-    auto plugins = scanPlugins(pluginFolder_);
-    for (const auto &pluginPath : plugins)
-    {
-        loadPlugin(pluginPath, minecraft);
-    }
-}
-
-Modloader::~Modloader()
-{
-    unloadAll();
+    for (const File &f : scanPlugins(pluginFolder))
+        loadPlugin(f);
 }

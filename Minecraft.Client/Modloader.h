@@ -1,7 +1,7 @@
 #pragma once
 #include "Minecraft.h"
 #include <functional>
-#include <filesystem>
+#include <memory>
 #include <vector>
 #include <string>
 
@@ -9,42 +9,54 @@
 #include <windows.h>
 #include <direct.h>
 #else
-#include <dirent.h>
-#include <unistd.h>
 #include <dlfcn.h>
+#include <unistd.h>
 #endif
 
-typedef void (*ModEntry)(const Minecraft *minecraft); 
-const std::string ModEntryName = "minecraft_mod";
+class File;
+
+class FileFilter;
+
+typedef void (*ModEntry)(Minecraft *minecraft);
+const std::string ModEntryName = "mcmain";
+
+#if defined(_WIN32)
+    using LibHandle = std::unique_ptr<void, std::function<void(HMODULE)>>;
+#else
+    using LibHandle = std::unique_ptr<void, std::function<void(void*)>>;
+#endif
 
 struct Plugin
 {
-#if defined(_WIN32)
-	HMODULE handle;
-#else
-	void *handle;
-#endif
-	std::string        path;
-	ModEntry           init;
+    LibHandle handle;
+    File      path;
+    ModEntry  init;
+
+    Plugin(LibHandle h, const File &f, ModEntry e)
+        : handle(std::move(h)), path(f), init(e) {}
+
+    Plugin(Plugin&&) = default;
+    Plugin& operator=(Plugin&&) = default;
+
+    Plugin(const Plugin&) = delete;
+    Plugin& operator=(const Plugin&) = delete;
 };
 
 class Modloader
 {
   public:
-	explicit Modloader(const std::string &pluginFolder, Minecraft *minecraft);
+    explicit Modloader(Minecraft *minecraft);
+    explicit Modloader(const File &pluginFolder, Minecraft *minecraft);
 
-	~Modloader();
+    ~Modloader() = default;
 
-	bool addPlugin(const std::string &pluginPath);
+    bool addPlugin(const File &pluginFile);
 
   private:
-	bool loadPlugin(const std::string &library, Minecraft *minecraft);
+    bool loadPlugin(const File &library);
 
-	std::vector<std::string> scanPlugins(const std::string &folder);
+    std::vector<File> scanPlugins(const File &folder);
 
-	void unloadAll();
-
-	std::vector<Plugin>   plugins_;
-	std::string pluginFolder_;
-	Minecraft *m_instance;
+    std::vector<Plugin> plugins_;
+    Minecraft          *m_instance;
 };
