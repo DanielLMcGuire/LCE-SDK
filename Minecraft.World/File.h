@@ -14,20 +14,20 @@ public:
     File(const File& parent, const std::string& child);
     File(const std::string& parent, const std::string& child);
 
-    bool        exists()      const;
-    bool        isFile()      const;
-    bool        isDirectory() const;
+    bool exists() const;
+    bool isFile() const;
+    bool isDirectory() const;
 
-	bool        _delete();
-    bool        mkdir()       const;
-    bool        mkdirs()      const;
-    bool        renameTo(const File& dest);
+    bool _delete();
+    bool mkdir() const;
+    bool mkdirs() const;
+    bool renameTo(const File& dest);
 
-    int64_t     length()       const;
+    int64_t length() const;
     int64_t     lastModified() const;
 
-    std::string getPath()  const;
-    std::string getName()  const;
+    std::string getPath() const;
+    std::string getName() const;
     std::string getParentPath() const;
 
     std::vector<File*>* listFiles()                   const;
