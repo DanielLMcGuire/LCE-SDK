@@ -37,12 +37,16 @@ class LevelSettings;
 class ColourTable;
 class MultiPlayerGameMode;
 class PsPlusUpsellWrapper;
+class MultiPlayerLevelArray;
+
+#define XUSER_MAX_COUNT 4
 
 #include "..\Minecraft.World\File.h"
 #include "..\Minecraft.World\DisconnectPacket.h"
 #include "..\Minecraft.World\C4JThread.h"
 
-using namespace std;
+#include <memory>
+#include <string>
 
 class Minecraft
 {
@@ -52,7 +56,7 @@ private:
 	};
 
 public:
-	static const wstring VERSION_STRING;
+	static const std::wstring VERSION_STRING;
 	Minecraft(Component *mouseComponent, Canvas *parent, MinecraftApplet *minecraftApplet, int width, int height, bool fullscreen);
 	void init();
 
@@ -90,11 +94,11 @@ public:
 
 	MultiPlayerLevel *level;
 	LevelRenderer *levelRenderer;
-	shared_ptr<MultiplayerLocalPlayer> player;
+	std::shared_ptr<MultiplayerLocalPlayer> player;
 
-	MultiPlayerLevelArray levels;
+	// MultiPlayerLevelArray levels;
 
-	shared_ptr<MultiplayerLocalPlayer> localplayers[XUSER_MAX_COUNT];
+	std::shared_ptr<MultiplayerLocalPlayer> localplayers[XUSER_MAX_COUNT];
 	MultiPlayerGameMode *localgameModes[XUSER_MAX_COUNT];
 	int localPlayerIdx;
 	ItemInHandRenderer *localitemInHandRenderers[XUSER_MAX_COUNT];
@@ -110,7 +114,7 @@ public:
 	void addPendingLocalConnection(int idx, ClientConnection *connection);
 	void connectionDisconnected(int idx, DisconnectPacket::eDisconnectReason reason) { m_connectionFailed[idx] = true; m_connectionFailedReason[idx] = reason; }
 
-	shared_ptr<MultiplayerLocalPlayer> createExtraLocalPlayer(int idx, const wstring& name, int pad, int iDimension, ClientConnection *clientConnection = NULL,MultiPlayerLevel *levelpassedin=NULL);
+	std::shared_ptr<MultiplayerLocalPlayer> createExtraLocalPlayer(int idx, const std::wstring& name, int pad, int iDimension, ClientConnection *clientConnection = NULL,MultiPlayerLevel *levelpassedin=NULL);
 	void createPrimaryLocalPlayer(int iPad);
 	bool setLocalPlayerIdx(int idx);
 	int getLocalPlayerIdx();
@@ -119,10 +123,10 @@ public:
 	void updatePlayerViewportAssignments();
 	int unoccupiedQuadrant;	// 4J - added
 
-	shared_ptr<Mob> cameraTargetPlayer;
+	std::shared_ptr<Mob> cameraTargetPlayer;
 	ParticleEngine *particleEngine;
 	User *user;
-	wstring serverDomain;
+	std::wstring serverDomain;
 	Canvas *parent;
 	bool appletMode;
 
@@ -177,12 +181,12 @@ public:
 	StatsCounter* stats[4];
 
 private:
-	wstring connectToIp;
+	std::wstring connectToIp;
 	int connectToPort;
 
 public:
 	void clearConnectionFailed();
-	void connectTo(const wstring& server, int port);
+	void connectTo(const std::wstring& server, int port);
 
 private:
 	void renderLoadingScreen();
@@ -195,14 +199,14 @@ private:
 
 public:
 	static File getWorkingDirectory();
-	static File getWorkingDirectory(const wstring& applicationName);
+	static File getWorkingDirectory(const std::wstring& applicationName);
 private:
 	static OS getPlatform();
 public:
 	LevelStorageSource *getLevelSource();
 	void setScreen(Screen *screen);
 private:
-	void checkGlError(const wstring& string);
+	void checkGlError(const std::wstring& string);
 
 #ifdef __ORBIS__
 	PsPlusUpsellWrapper *m_pPsPlusUpsell;
@@ -211,7 +215,7 @@ private:
 public:
 	void destroy();
 	volatile bool running;
-	wstring fpsString;
+	std::wstring fpsString;
 	void run();
 	// 4J-PB - split the run into 3 parts so we can run it from our xbox game loop
 	static Minecraft *GetInstance();
