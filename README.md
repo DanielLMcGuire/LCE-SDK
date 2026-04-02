@@ -1,6 +1,9 @@
 C++ Modding SDK for LCE
 
-Work in progress, commits are (strongly) welcomed
+> [!NOTE]
+> **This project is delayed due for many reasons. It is not off the table for me unless I see there is another alternative.**
+>
+> Commits are still welcomed
 
 I plan to bind this to a higher level language when complete
 
