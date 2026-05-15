@@ -30,7 +30,9 @@ void minecraft_mod(Minecraft* minecraft) {
 }
 ```
 
-Create a thread and include ANYTHING from ../Minecraft.Client/, and manipulate anything under the Minecraft class or it's members inside the new thread.
+Create a thread and include ANYTHING from ../Minecraft.Client/, and manipulate anything already existing under the minecraft object.
+
+I will have to add a pool of objects since C++ does not support dynamic VTABLE allocations. This will limit the amount of mods that can affect an area. An alternative would be converting EVERYTHING to a parsable format, which is not something I wish to do. Instead the game will have to check for `nullptr` more.
 
 Post init stuff can be done before the thread, but you should read the code to understand it's limitations at this stage.
 
