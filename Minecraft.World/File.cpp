@@ -277,7 +277,7 @@ std::unique_ptr<File::FileList> File::listFiles(FileFilter* filter) const
             std::string name = wfd.cFileName;
             if (name == "." || name == "..") continue;
             auto candidate = std::unique_ptr<File>(new File(*this, name));
-            if (filter && filter->accept(*candidate))
+            if (filter && filter->accept(candidate.get()))
                 output->push_back(std::move(candidate));
             // unique_ptr destructs candidate automatically if not accepted
         } while (FindNextFileA(hFind, &wfd));
@@ -291,7 +291,7 @@ std::unique_ptr<File::FileList> File::listFiles(FileFilter* filter) const
             std::string name = entry->d_name;
             if (name == "." || name == "..") continue;
             auto candidate = std::unique_ptr<File>(new File(*this, name));
-            if (filter && filter->accept(*candidate))
+            if (filter && filter->accept(candidate.get()))
                 output->push_back(std::move(candidate));
             // unique_ptr destructs candidate automatically if not accepted
         }
